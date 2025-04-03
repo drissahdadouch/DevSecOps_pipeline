@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+spec:
+  selector:
+    matchLabels:
+      app: frontend-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+    spec:
+      containers:
+      - name: frontend-container
+        image: drissahd/frontend_app
+        ports:
+        - containerPort: 3000
