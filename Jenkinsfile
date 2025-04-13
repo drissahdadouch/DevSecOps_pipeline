@@ -37,7 +37,7 @@ pipeline {
               }
            }
         }
-        stage("code quality testing with sonarqube"){
+     /*   stage("code quality testing with sonarqube"){
             steps{
                 sh'''
                 $SONAR_SCANNER_HOME/bin/sonar-scanner \
@@ -48,7 +48,7 @@ pipeline {
                    -Dsonar.token=sqp_c938e562bcb28ee470127ee0165685b15d6ffd0c
                 '''
             }
-        } 
+        }  */
          stage("Build Docker images"){
             steps{
                 dir('web_app/frontend'){

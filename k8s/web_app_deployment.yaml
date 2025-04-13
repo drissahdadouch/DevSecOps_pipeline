@@ -15,5 +15,12 @@ spec:
       containers:
       - name: frontend-container
         image: drissahd/frontend_app
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
         ports:
         - containerPort: 3000
