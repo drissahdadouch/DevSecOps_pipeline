@@ -95,10 +95,17 @@ pipeline {
                 script {
                     dir('k8s') {
                         sh "aws eks update-kubeconfig --name my-eks-cluster"
+                        /* HPA Custom Resource Definitions */
                         sh "kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml "
+                        /* VPA Custom Resource Definitions */
+                        sh '''  
+                        kubectl apply -f https://github.com/kubernetes/autoscaler/releases/latest/download/vertical-pod-autoscaler-crd.yaml
+                        kubectl apply -f https://github.com/kubernetes/autoscaler/releases/latest/download/vertical-pod-autoscaler.yaml
+                        '''
                         sh "kubectl apply -f web_app_deployment.yaml"
                         sh "kubectl apply -f web_app_service.yaml"
                         sh "kubectl apply -f HPA.yaml"
+                        sh "kubectl apply -f VPA.yaml"
                         sh "kubectl get service frontend-app"
                     }
                 }
