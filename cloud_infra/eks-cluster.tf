@@ -17,9 +17,10 @@ resource "aws_iam_role_policy_attachment" "eks_policy_attachment" {
 }
 
 # Create EKS Cluster
-resource "aws_eks_cluster" "myapp-eks-cluster" {
+resource "aws_eks_cluster" "myapp_eks_cluster" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks_role.arn
+  version  = "1.28" # Optional but recommended
 
   vpc_config {
     subnet_ids = [aws_subnet.eks_subnet_1.id, aws_subnet.eks_subnet_2.id]
@@ -58,7 +59,7 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy" {
 
 # EKS Node Group
 resource "aws_eks_node_group" "eks_node_group" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
+  cluster_name    = aws_eks_cluster.myapp_eks_cluster.name
   node_group_name = "eks-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
   subnet_ids      = [aws_subnet.eks_subnet_1.id, aws_subnet.eks_subnet_2.id]
@@ -69,6 +70,9 @@ resource "aws_eks_node_group" "eks_node_group" {
     min_size     = var.node_min_size
   }
 
+  instance_types = ["t3.medium"]
+  disk_size      = 20
+
   depends_on = [
     aws_iam_role_policy_attachment.worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
@@ -78,9 +82,9 @@ resource "aws_eks_node_group" "eks_node_group" {
 
 # Outputs
 output "eks_cluster_name" {
-  value = aws_eks_cluster.eks_cluster.name
+  value = aws_eks_cluster.myapp_eks_cluster.name
 }
 
 output "eks_cluster_endpoint" {
-  value = aws_eks_cluster.eks_cluster.endpoint
+  value = aws_eks_cluster.myapp_eks_cluster.endpoint
 }
