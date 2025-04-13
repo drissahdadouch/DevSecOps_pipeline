@@ -12,13 +12,13 @@ pipeline {
                 
              stage('NPM Dependency Audit') {
                     steps {
-                        dir('web_app/frontend'){
+                        dir('Web_app/frontend'){
                         sh '''
                             npm audit --audit-level=critical
                             echo $?
                         '''
                         }
-                        dir('web_app/backend'){
+                        dir('Web_app/backend'){
                         sh '''
                             npm audit --audit-level=critical
                             echo $?
@@ -29,7 +29,7 @@ pipeline {
         
         stage("owasp_check"){
             steps{
-               dir('web_app'){
+               dir('Web_app'){
                 dependencyCheck additionalArguments: '--format ALL', odcInstallation: 'owasp_dependency_check'
                }
                 }
@@ -51,12 +51,12 @@ pipeline {
         }  */
          stage("Build Docker images"){
             steps{
-                dir('web_app/frontend'){
+                dir('Web_app/frontend'){
                     sh ''' 
                     docker build -t drissahd/frontend_app .
                     '''
                 }
-                dir('web_app/backend'){
+                dir('Web_app/backend'){
                   sh ''' 
                     docker build -t drissahd/backend_app .
                     '''  
@@ -99,6 +99,7 @@ pipeline {
                         sh "kubectl apply -f web_app_deployment.yaml"
                         sh "kubectl apply -f web_app_service.yaml"
                         sh "kubectl apply -f HPA.yaml"
+                        sh "kubectl get service frontend-app"
                     }
                 }
             }
