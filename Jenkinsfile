@@ -95,8 +95,10 @@ pipeline {
                 script {
                     dir('k8s') {
                         sh "aws eks update-kubeconfig --name myapp-eks-cluster"
+                        sh "kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml "
                         sh "kubectl apply -f web_app_deployment.yaml"
                         sh "kubectl apply -f web_app_service.yaml"
+                        sh "kubectl apply -f HPA.yaml"
                     }
                 }
             }
