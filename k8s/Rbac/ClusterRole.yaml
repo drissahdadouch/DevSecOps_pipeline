@@ -4,5 +4,5 @@ metadata:
   name: pod-reader-cluster
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
+  resources: ["pods","deployments"]
+  verbs: ["get", "list","watch"]

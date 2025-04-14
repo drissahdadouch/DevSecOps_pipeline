@@ -4,7 +4,7 @@ metadata:
   name: cluster-pod-reader-binding
 subjects:
 - kind: User
-  name: "admin-user"  # Utilisateur avec des droits globaux
+  name: "dev-user" 
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
