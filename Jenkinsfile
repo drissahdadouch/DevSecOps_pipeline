@@ -104,8 +104,8 @@ pipeline {
                         sh "kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml "
                         /* VPA Custom Resource Definitions */
                         sh '''  
-                        kubectl apply -f https://github.com/kubernetes/autoscaler/releases/latest/download/vertical-pod-autoscaler-crd.yaml
-                        kubectl apply -f https://github.com/kubernetes/autoscaler/releases/latest/download/vertical-pod-autoscaler.yaml
+                        kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/vpa-v1-crd.yaml
+                        kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/vpa-deployment.yaml
                         '''
                         sh "kubectl apply -f HPA.yaml"
                         sh "kubectl apply -f VPA.yaml"
