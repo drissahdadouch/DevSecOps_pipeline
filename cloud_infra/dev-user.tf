@@ -13,7 +13,8 @@ resource "aws_iam_policy" "developer_eks" {
             "Effect": "Allow",
             "Action": [
                 "eks:DescribeCluster",
-                "eks:ListClusters"
+                "eks:ListClusters",
+                "eks:AccessKubernetesApi"
             ],
             "Resource": "*"
         }
