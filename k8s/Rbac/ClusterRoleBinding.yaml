@@ -1,13 +1,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: pod-deploy-reader-binding
+  name: pod-reader-cluster-binding
 subjects:
 - kind: Group
   name: dev-user
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
-  name: pod-deploy-reader
+  name: pod-reader-cluster
   apiGroup: rbac.authorization.k8s.io
 
