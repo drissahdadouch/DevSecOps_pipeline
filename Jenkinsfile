@@ -86,6 +86,7 @@ pipeline {
                     dir('cloud_infra') {
                         sh "terraform init"
                         sh "terraform apply -auto-approve"
+                        sh "terraform destroy"
                     }
                 }
             }
