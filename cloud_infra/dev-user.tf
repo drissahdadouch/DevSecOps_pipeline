@@ -31,5 +31,5 @@ resource "aws_iam_user_policy_attachment" "developer_eks" {
 resource "aws_eks_access_entry" "developer" {
   cluster_name      = aws_eks_cluster.myapp_eks_cluster.name
   principal_arn     = aws_iam_user.developer.arn
-  kubernetes_groups = ["dev-user"]
+  kubernetes_groups = ["developer"]
 }

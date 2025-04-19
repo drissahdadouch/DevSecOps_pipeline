@@ -4,7 +4,7 @@ metadata:
   name: pod-reader-cluster-binding
 subjects:
 - kind: Group
-  name: dev-user
+  name: developer
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
