@@ -163,7 +163,7 @@ pipeline {
             }
         }
 
-     stage("Security Scan with OWASP ZAP") {
+                stage("Security Scan with OWASP ZAP") {
     steps {
         script {
             def target = "http://${env.FRONTEND_IP}:3000"
@@ -174,15 +174,22 @@ pipeline {
 
                 docker run --rm \
                   -u zap \
-                  -v ${pwd}/zap_output:/zap/wrk \
-                  -v ${pwd}/zap_output:/zap/reports \
-                  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+                  -v \$(pwd)/zap_output:/zap/wrk \
+                  -v \$(pwd)/zap_output:/zap/reports \
+                  ghcr.io/zaproxy/zaproxy:stable \
+                  zap-baseline.py \
                   -t ${target} \
-                  -r /zap/reports/zap_report.html
+                  -r zap_report.html
             """
         }
     }
+    post {
+        always {
+            archiveArtifacts artifacts: 'zap_output/zap_report.html', fingerprint: true
+        }
+    }
 }
+
 
 
     }
