@@ -136,7 +136,7 @@ pipeline {
             steps {
                 script {
                     def externalIP = sh(
-                        script: '''
+                        script: ''' #!/bin/bash
                             ATTEMPTS=0
                             while [[ $ATTEMPTS -lt 30 ]]; do
                                 IP=$(kubectl get svc frontend-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
