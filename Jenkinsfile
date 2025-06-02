@@ -163,25 +163,27 @@ pipeline {
             }
         }
 
-        stage("Security Scan with OWASP ZAP") {
+     stage("Security Scan with OWASP ZAP") {
     steps {
         script {
             def target = "http://${env.FRONTEND_IP}:3000"
-            echo "Scanning $target"
+            echo "Scanning ${target}"
 
-            sh '''
+            sh """
                 mkdir -p zap_output
 
                 docker run --rm \
+                  -u zap \
                   -v $(pwd)/zap_output:/zap/wrk \
                   -v $(pwd)/zap_output:/zap/reports \
                   ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-                  -t http://${FRONTEND_IP}:3000 \
+                  -t ${target} \
                   -r /zap/reports/zap_report.html
-            '''
+            """
         }
     }
 }
+
 
     }
 }
