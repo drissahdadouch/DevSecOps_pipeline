@@ -171,7 +171,8 @@ pipeline {
 
         sh """
             mkdir -p ${WORKSPACE}/zap_output
-            rm -f ${WORKSPACE}/zap_output/zap.yaml || true
+            rm -f ${WORKSPACE}/zap_output/zap.yaml 
+            sleep 15
 
             docker run --rm \
               -u zap \
