@@ -170,12 +170,12 @@ pipeline {
             echo "Scanning ${target}"
 
             sh """
-                mkdir -p zap_output
+                mkdir -p ${WORKSPACE}/zap_output
 
                 docker run --rm \
                   -u zap \
-                  -v \$(pwd)/zap_output:/zap/wrk \
-                  -v \$(pwd)/zap_output:/zap/reports \
+                  -v ${WORKSPACE}/zap_output:/zap/wrk \
+                  -v ${WORKSPACE}/zap_output:/zap/reports \
                   ghcr.io/zaproxy/zaproxy:stable \
                   zap-baseline.py \
                   -t ${target} \
@@ -189,6 +189,7 @@ pipeline {
         }
     }
 }
+
 
 
 
