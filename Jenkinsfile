@@ -182,6 +182,7 @@ pipeline {
               zap-baseline.py \
               -t ${target} \
               -r /zap/reports/zap_report.html
+              -n
         """
     }
 }
