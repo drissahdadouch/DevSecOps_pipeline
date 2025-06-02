@@ -183,7 +183,7 @@ pipeline {
               -t ${target} \
               -r /zap/reports/zap_report.html
               -n
-        """
+        """ ,returnStatus: true
     }
 }
 
