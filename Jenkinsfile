@@ -138,19 +138,19 @@ pipeline {
                     def externalIP = sh(
                         script: ''' #!/bin/bash
                             ATTEMPTS=0
-                            while [[ $ATTEMPTS -lt 30 ]]; do
+                            while [ $ATTEMPTS -lt 30 ]; do
                                 IP=$(kubectl get svc frontend-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-                                if [[ -z "$IP" ]]; then
+                                if [ -z "$IP" ]; then
                                     echo "Waiting for external IP..."
                                     sleep 10
-                                    ((ATTEMPTS++))
+                                    ATTEMPTS=$((ATTEMPTS + 1))
                                 else
                                     echo $IP
                                     break
                                 fi
                             done
 
-                            if [[ -z "$IP" ]]; then
+                            if [ -z "$IP" ]; then
                                 echo "Failed to get external IP after timeout"
                                 exit 1
                             fi
@@ -172,9 +172,10 @@ pipeline {
                     echo "Scanning $target"
 
                     sh """
-                        docker run --rm -v \$PWD:/zap/wrk:rw \
+                    docker run --rm \
+              -v \$PWD:/zap/wrk:rw \
               ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-              -t ${target} -r zap_report.html
+              -t $target -r zap_report.html
                     """
                 }
             }
