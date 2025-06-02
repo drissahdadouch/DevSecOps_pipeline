@@ -173,8 +173,8 @@ pipeline {
 
                     sh """
                         docker run --rm -v \$PWD:/zap/wrk:rw \
-                            -t owasp/zap2docker-stable zap-baseline.py \
-                            -t ${target} -r zap_report.html
+              ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+              -t ${target} -r zap_report.html
                     """
                 }
             }
