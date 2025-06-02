@@ -164,26 +164,27 @@ pipeline {
         }
 
                 stage("Security Scan with OWASP ZAP") {
-    steps {
-        script {
-            def target = "http://${env.FRONTEND_IP}:3000"
-            echo "Scanning ${target}"
+         steps {
+    script {
+        def target = "http://${env.FRONTEND_IP}:3000"
+        echo "Scanning ${target}"
 
-            sh """
-                mkdir -p ${WORKSPACE}/zap_output
-                chmod -R 777 ${WORKSPACE}/zap_output
+        sh """
+            mkdir -p ${WORKSPACE}/zap_output
+            chmod -R 777 ${WORKSPACE}/zap_output
 
-                docker run --rm \
-                  -u zap \
-                  -v ${WORKSPACE}/zap_output:/zap/wrk \
-                  -v ${WORKSPACE}/zap_output:/zap/reports \
-                  ghcr.io/zaproxy/zaproxy:stable \
-                  zap-baseline.py \
-                  -t ${target} \
-                  -r zap_report.html
-            """
-        }
+            docker run --rm \
+              -u zap \
+              -v ${WORKSPACE}/zap_output:/zap/wrk \
+              -v ${WORKSPACE}/zap_output:/zap/reports \
+              ghcr.io/zaproxy/zaproxy:stable \
+              zap-baseline.py \
+              -t ${target} \
+              -r /zap/reports/zap_report.html
+        """
     }
+}
+
     post {
         always {
             archiveArtifacts artifacts: 'zap_output/zap_report.html', fingerprint: true
