@@ -172,10 +172,12 @@ pipeline {
                     echo "Scanning $target"
 
                     sh """
-                    docker run --rm \
-              -v \$PWD:/zap/wrk:rw \
-              ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-              -t $target -r zap_report.html
+                  docker run --rm \
+  -v $(pwd):/zap/reports \
+  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+  -t http://a50ffc41e10df4ad1a1e274444c016b6-452705281.us-east-1.elb.amazonaws.com \
+  -r /zap/reports/zap_report.html
+
                     """
                 }
             }
