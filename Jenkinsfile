@@ -17,13 +17,11 @@ pipeline {
                         dir('Web_app/frontend') {
                             sh '''
                                 npm audit --audit-level=critical
-                                echo $?
                             '''
                         }
                         dir('Web_app/backend') {
                             sh '''
                                 npm audit --audit-level=critical
-                                echo $?
                             '''
                         }
                     }
@@ -108,10 +106,8 @@ pipeline {
                     }
 
                     dir('Autoscaling') {
-                        // HPA Custom Resource Definitions
                         sh 'kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml'
 
-                        // VPA Custom Resource Definitions
                         sh '''
                             kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/vpa-v1-crd-gen.yaml
                             kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/vpa-rbac.yaml
@@ -119,6 +115,7 @@ pipeline {
                             kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/updater-deployment.yaml
                             kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/vertical-pod-autoscaler/deploy/admission-controller-deployment.yaml
                         '''
+
                         sh 'kubectl apply -f HPA.yaml'
                         sh 'kubectl apply -f VPA.yaml'
                     }
@@ -135,32 +132,33 @@ pipeline {
         stage("Get External IP") {
             steps {
                 script {
-                    def externalIP = sh(
-                        script: ''' #!/bin/bash
-                            ATTEMPTS=0
-                            while [ $ATTEMPTS -lt 30 ]; do
-                                IP=$(kubectl get svc frontend-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-                                if [ -z "$IP" ]; then
-                                    echo "Waiting for external IP..."
-                                    sleep 10
-                                    ATTEMPTS=$((ATTEMPTS + 1))
-                                else
-                                    echo $IP
-                                    break
-                                fi
-                            done
-
+                    def ip = sh(
+                        script: '''#!/bin/bash
+                        ATTEMPTS=0
+                        while [ $ATTEMPTS -lt 30 ]; do
+                            IP=$(kubectl get svc frontend-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
                             if [ -z "$IP" ]; then
-                                echo "Failed to get external IP after timeout"
-                                exit 1
+                                echo "Waiting for external IP..."
+                                sleep 10
+                                ATTEMPTS=$((ATTEMPTS + 1))
+                            else
+                                echo "$IP"
+                                break
                             fi
+                        done
 
-                            echo $IP
+                        if [ -z "$IP" ]; then
+                            echo "Failed to get external IP after timeout"
+                            exit 1
+                        fi
+
+                        echo "$IP"
                         ''',
                         returnStdout: true
                     ).trim()
 
-                    env.FRONTEND_IP = externalIP
+                    echo "Retrieved external IP: ${ip}"
+                    env.FRONTEND_IP = ip
                 }
             }
         }
@@ -172,14 +170,13 @@ pipeline {
                     echo "Scanning $target"
 
                     sh """
-docker run --rm \
-  -v /var/lib/jenkins:/zap/wrk \
-  -v /var/lib/jenkins:/zap/reports \
-  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-  -t http://${externalIP}:3000 \
-  -r /zap/reports/zap_report.html
-"""
-
+                        docker run --rm \
+                          -v /var/lib/jenkins:/zap/wrk \
+                          -v /var/lib/jenkins:/zap/reports \
+                          ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+                          -t $target \
+                          -r /zap/reports/zap_report.html
+                    """
                 }
             }
         }
