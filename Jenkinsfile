@@ -171,6 +171,7 @@ pipeline {
 
             sh """
                 mkdir -p ${WORKSPACE}/zap_output
+                chmod -R 777 ${WORKSPACE}/zap_output
 
                 docker run --rm \
                   -u zap \
