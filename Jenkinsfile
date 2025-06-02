@@ -174,8 +174,8 @@ pipeline {
 
                 docker run --rm \
                   -u zap \
-                  -v $(pwd)/zap_output:/zap/wrk \
-                  -v $(pwd)/zap_output:/zap/reports \
+                  -v ${pwd}/zap_output:/zap/wrk \
+                  -v ${pwd}/zap_output:/zap/reports \
                   ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
                   -t ${target} \
                   -r /zap/reports/zap_report.html
