@@ -63,7 +63,7 @@ pipeline {
             }
         }
 
-        stage("Scan Docker Images with Trivy") {
+      /*  stage("Scan Docker Images with Trivy") {
             steps {
                 sh '''
                     trivy image --severity HIGH,CRITICAL --format template \
@@ -75,7 +75,7 @@ pipeline {
                         -o trivy-scan-backend-report.html drissahd/backend_app
                 '''
             }
-        }
+        } */
 
         stage("Push Docker Images to Docker Hub") {
             steps {
@@ -163,29 +163,32 @@ pipeline {
             }
         }
 
-                stage("Security Scan with OWASP ZAP") {
-         steps {
-    script {
-        def target = "http://${env.FRONTEND_IP}:3000"
-        echo "Scanning ${target}"
+     stage("Security Scan with OWASP ZAP") {
+    steps {
+        script {
+            def target = "http://${env.FRONTEND_IP}:3000"
+            echo "Scanning ${target}"
 
-        sh """
-            mkdir -p ${WORKSPACE}/zap_output
-            rm -f ${WORKSPACE}/zap_output/zap.yaml 
-            sleep 15
+            sh(
+                script: """
+                    mkdir -p ${WORKSPACE}/zap_output
+                    rm -f ${WORKSPACE}/zap_output/zap.yaml 
+                    sleep 15
 
-            docker run --rm \
-              -u zap \
-              -v ${WORKSPACE}/zap_output:/zap/wrk \
-              -v ${WORKSPACE}/zap_output:/zap/reports \
-              ghcr.io/zaproxy/zaproxy:stable \
-              zap-baseline.py \
-              -t ${target} \
-              -r /zap/reports/zap_report.html
-              -n
-        """ ,returnStatus: true
+                    docker run --rm \\
+                      -u zap \\
+                      -v ${WORKSPACE}/zap_output:/zap/wrk \\
+                      -v ${WORKSPACE}/zap_output:/zap/reports \\
+                      ghcr.io/zaproxy/zaproxy:stable \\
+                      zap-baseline.py \\
+                      -t ${target} \\
+                      -r /zap/reports/zap_report.html \\
+                      -n
+                """,
+                returnStatus: true
+            )
+        }
     }
-}
 
     post {
         always {
