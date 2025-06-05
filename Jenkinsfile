@@ -162,13 +162,12 @@ pipeline {
                 }
             }
         }
-     stage("Security Scan with OWASP ZAP") {
+       stage("Security Scan with OWASP ZAP") {
     steps {
         script {
-            def target = "http://${env.FRONTEND_IP}:3000"
+            def target = "http://${env.FRONTEND_IP}"
             echo "Scanning ${target}"
             
-            // Store the exit code but don't fail the pipeline immediately
             def zapExitCode = sh(
                 script: """
                     mkdir -p ${WORKSPACE}/zap_output
@@ -188,30 +187,37 @@ pipeline {
                 returnStatus: true
             )
             
-            // List generated files for debugging
+            // Debug: List what files were actually created
             sh "ls -la ${WORKSPACE}/zap_output/"
             
-            // Set build status based on ZAP results
-            if (zapExitCode == 1) {
-                echo "ZAP found medium/high risk issues"
+            // Interpret ZAP exit codes correctly
+            if (zapExitCode == 0) {
+                echo "ZAP scan completed successfully - no high/medium risk issues"
+            } else if (zapExitCode == 1) {
+                echo "ZAP scan completed with warnings - low risk issues found"
                 currentBuild.result = 'UNSTABLE'
             } else if (zapExitCode == 2) {
+                echo "ZAP found medium risk issues"
+                currentBuild.result = 'UNSTABLE'
+            } else if (zapExitCode == 3) {
                 echo "ZAP found high risk issues"
                 currentBuild.result = 'FAILURE'
-            } else if (zapExitCode == 0) {
-                echo "ZAP scan completed with warnings only"
+            } else {
+                echo "ZAP scan failed with exit code: ${zapExitCode}"
+                currentBuild.result = 'FAILURE'
             }
         }
     }
     post {
         always {
             script {
-                // Archive artifacts only if they exist
+                // Check what files actually exist
                 def artifactsToArchive = []
                 def possibleArtifacts = [
                     'zap_output/zap_report.html',
                     'zap_output/zap_report.json', 
-                    'zap_output/zap_report.xml'
+                    'zap_output/zap_report.xml',
+                    'zap_output/zap.yaml'  // Also archive the YAML file that's being created
                 ]
                 
                 possibleArtifacts.each { artifact ->
@@ -227,11 +233,12 @@ pipeline {
                     archiveArtifacts artifacts: artifactsToArchive.join(','), 
                                    fingerprint: true, 
                                    allowEmptyArchive: true
+                    echo "Archived ${artifactsToArchive.size()} artifacts"
                 } else {
                     echo "No ZAP report artifacts found to archive"
                 }
                 
-                // Publish HTML report if it exists
+                // Try to publish HTML report if it exists
                 if (fileExists('zap_output/zap_report.html')) {
                     publishHTML([
                         allowMissing: false,
@@ -239,9 +246,11 @@ pipeline {
                         keepAll: true,
                         reportDir: 'zap_output',
                         reportFiles: 'zap_report.html',
-                        reportName: 'OWASP ZAP Security Report',
-                        reportTitles: 'ZAP Security Scan Results'
+                        reportName: 'OWASP ZAP Security Report'
                     ])
+                    echo "Published HTML report"
+                } else {
+                    echo "HTML report not found - check ZAP command parameters"
                 }
             }
         }
