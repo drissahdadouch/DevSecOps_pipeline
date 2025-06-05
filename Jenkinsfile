@@ -162,35 +162,88 @@ pipeline {
                 }
             }
         }
-         stage("Security Scan with OWASP ZAP") {
+     stage("Security Scan with OWASP ZAP") {
     steps {
         script {
             def target = "http://${env.FRONTEND_IP}:3000"
             echo "Scanning ${target}"
-
-            sh(
+            
+            // Store the exit code but don't fail the pipeline immediately
+            def zapExitCode = sh(
                 script: """
                     mkdir -p ${WORKSPACE}/zap_output
-                    rm -f ${WORKSPACE}/zap_output/zap.yaml 
+                    rm -f ${WORKSPACE}/zap_output/*
                     sleep 15
-
                     docker run --rm \\
-                      -u zap \\
-                      -v ${WORKSPACE}/zap_output:/zap/wrk \\
-                      ghcr.io/zaproxy/zaproxy:stable \\
-                      zap-baseline.py \\
-                      -t ${target} \\
-                      -r zap_report.html \\
-                      -n
+                        -u zap \\
+                        -v ${WORKSPACE}/zap_output:/zap/wrk \\
+                        ghcr.io/zaproxy/zaproxy:stable \\
+                        zap-baseline.py \\
+                        -t ${target} \\
+                        -H zap_report.html \\
+                        -J zap_report.json \\
+                        -x zap_report.xml \\
+                        -I
                 """,
                 returnStatus: true
             )
+            
+            // List generated files for debugging
+            sh "ls -la ${WORKSPACE}/zap_output/"
+            
+            // Set build status based on ZAP results
+            if (zapExitCode == 1) {
+                echo "ZAP found medium/high risk issues"
+                currentBuild.result = 'UNSTABLE'
+            } else if (zapExitCode == 2) {
+                echo "ZAP found high risk issues"
+                currentBuild.result = 'FAILURE'
+            } else if (zapExitCode == 0) {
+                echo "ZAP scan completed with warnings only"
+            }
         }
     }
-
     post {
         always {
-            archiveArtifacts artifacts: 'zap_output/zap_report.html', fingerprint: true
+            script {
+                // Archive artifacts only if they exist
+                def artifactsToArchive = []
+                def possibleArtifacts = [
+                    'zap_output/zap_report.html',
+                    'zap_output/zap_report.json', 
+                    'zap_output/zap_report.xml'
+                ]
+                
+                possibleArtifacts.each { artifact ->
+                    if (fileExists(artifact)) {
+                        artifactsToArchive.add(artifact)
+                        echo "Found artifact: ${artifact}"
+                    } else {
+                        echo "Artifact not found: ${artifact}"
+                    }
+                }
+                
+                if (artifactsToArchive.size() > 0) {
+                    archiveArtifacts artifacts: artifactsToArchive.join(','), 
+                                   fingerprint: true, 
+                                   allowEmptyArchive: true
+                } else {
+                    echo "No ZAP report artifacts found to archive"
+                }
+                
+                // Publish HTML report if it exists
+                if (fileExists('zap_output/zap_report.html')) {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'zap_output',
+                        reportFiles: 'zap_report.html',
+                        reportName: 'OWASP ZAP Security Report',
+                        reportTitles: 'ZAP Security Scan Results'
+                    ])
+                }
+            }
         }
     }
 }
