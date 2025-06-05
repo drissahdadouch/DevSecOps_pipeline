@@ -162,100 +162,39 @@ pipeline {
                 }
             }
         }
-       stage("Security Scan with OWASP ZAP") {
+        stage("Security Scan with OWASP ZAP") {
     steps {
         script {
-            def target = "http://${env.FRONTEND_IP}"
+            def target = "http://${env.FRONTEND_IP}:3000"
             echo "Scanning ${target}"
-            
-            def zapExitCode = sh(
+
+            sh(
                 script: """
                     mkdir -p ${WORKSPACE}/zap_output
-                    rm -f ${WORKSPACE}/zap_output/*
+                    rm -f ${WORKSPACE}/zap_output/zap_report.html
                     sleep 15
+
                     docker run --rm \\
-                        -u zap \\
-                        -v ${WORKSPACE}/zap_output:/zap/wrk \\
-                        ghcr.io/zaproxy/zaproxy:stable \\
-                        zap-baseline.py \\
-                        -t ${target} \\
-                        -H zap_report.html \\
-                        -J zap_report.json \\
-                        -x zap_report.xml \\
-                        -I
+                      -u zap \\
+                      -v ${WORKSPACE}/zap_output:/zap/wrk \\
+                      ghcr.io/zaproxy/zaproxy:stable \\
+                      zap-full-scan.py \\
+                      -t ${target} \\
+                      -r zap_report.html \\
+                      -n
                 """,
                 returnStatus: true
             )
-            
-            // Debug: List what files were actually created
-            sh "ls -la ${WORKSPACE}/zap_output/"
-            
-            // Interpret ZAP exit codes correctly
-            if (zapExitCode == 0) {
-                echo "ZAP scan completed successfully - no high/medium risk issues"
-            } else if (zapExitCode == 1) {
-                echo "ZAP scan completed with warnings - low risk issues found"
-                currentBuild.result = 'UNSTABLE'
-            } else if (zapExitCode == 2) {
-                echo "ZAP found medium risk issues"
-                currentBuild.result = 'UNSTABLE'
-            } else if (zapExitCode == 3) {
-                echo "ZAP found high risk issues"
-                currentBuild.result = 'FAILURE'
-            } else {
-                echo "ZAP scan failed with exit code: ${zapExitCode}"
-                currentBuild.result = 'FAILURE'
-            }
         }
     }
+
     post {
         always {
-            script {
-                // Check what files actually exist
-                def artifactsToArchive = []
-                def possibleArtifacts = [
-                    'zap_output/zap_report.html',
-                    'zap_output/zap_report.json', 
-                    'zap_output/zap_report.xml',
-                    'zap_output/zap.yaml'  // Also archive the YAML file that's being created
-                ]
-                
-                possibleArtifacts.each { artifact ->
-                    if (fileExists(artifact)) {
-                        artifactsToArchive.add(artifact)
-                        echo "Found artifact: ${artifact}"
-                    } else {
-                        echo "Artifact not found: ${artifact}"
-                    }
-                }
-                
-                if (artifactsToArchive.size() > 0) {
-                    archiveArtifacts artifacts: artifactsToArchive.join(','), 
-                                   fingerprint: true, 
-                                   allowEmptyArchive: true
-                    echo "Archived ${artifactsToArchive.size()} artifacts"
-                } else {
-                    echo "No ZAP report artifacts found to archive"
-                }
-                
-                // Try to publish HTML report if it exists
-                if (fileExists('zap_output/zap_report.html')) {
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'zap_output',
-                        reportFiles: 'zap_report.html',
-                        reportName: 'OWASP ZAP Security Report'
-                    ])
-                    echo "Published HTML report"
-                } else {
-                    echo "HTML report not found - check ZAP command parameters"
-                }
-            }
+            archiveArtifacts artifacts: 'zap_output/zap_report.html', fingerprint: true
         }
     }
 }
+
 
     }
 }
