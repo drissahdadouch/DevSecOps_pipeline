@@ -182,7 +182,7 @@ pipeline {
                       ghcr.io/zaproxy/zaproxy:stable \\
                       zap-baseline.py \\
                       -t ${target} \\
-                      -r /zap/reports/zap_report.html \\
+                      -r zap_report.html \\
                       -n
                 """,
                 returnStatus: true
