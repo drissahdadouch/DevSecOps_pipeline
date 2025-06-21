@@ -37,7 +37,7 @@ pipeline {
             }
         }
 
-        /*
+        
         stage("Code Quality Testing with SonarQube") {
             steps {
                 sh '''
@@ -50,7 +50,7 @@ pipeline {
                 '''
             }
         }
-        */
+        
 
         stage("Build Docker Images") {
             steps {
@@ -63,7 +63,7 @@ pipeline {
             }
         }
 
-      /*  stage("Scan Docker Images with Trivy") {
+        stage("Scan Docker Images with Trivy") {
             steps {
                 sh '''
                     trivy image --severity HIGH,CRITICAL --format template \
@@ -75,7 +75,7 @@ pipeline {
                         -o trivy-scan-backend-report.html drissahd/backend_app
                 '''
             }
-        } */
+        } 
 
         stage("Push Docker Images to Docker Hub") {
             steps {
