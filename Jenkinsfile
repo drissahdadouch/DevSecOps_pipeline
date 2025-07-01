@@ -5,6 +5,7 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = 'us-east-1'
+        SONAR_TOKEN = credentials('sonar_token')
         SONAR_SCANNER_HOME = tool 'sonarqube-scanner702'
     }
 
@@ -46,7 +47,7 @@ pipeline {
                        -Dsonar.sources=. \
                        -Dsonar.host.url=http://127.0.0.1:9000 \
                        -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info \
-                       -Dsonar.token=sqp_c938e562bcb28ee470127ee0165685b15d6ffd0c
+                       -Dsonar.token=$SONAR_TOKEN 
                 '''
             }
         }
